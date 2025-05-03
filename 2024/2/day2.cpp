@@ -22,13 +22,79 @@ std::ifstream open_input_file(int file_to_run) {
     return infile;
 }
 
+bool is_strictly_safe(const std::vector<int>& row) {
+    bool increasing = true;
+    bool decreasing = true;
+
+    for (int j = 0; j + 1 < row.size(); ++j) {
+        int difference = row.at(j + 1) - row.at(j);
+        if (std::abs(difference) < 1 || std::abs(difference) > 3) {
+            return false;
+        }
+        if (difference <= 0) increasing = false;
+        if (difference >= 0) decreasing = false;
+    }
+
+    return increasing || decreasing;
+}
+
+bool is_safe_with_dampener(const std::vector<int>& row) {
+    if (is_strictly_safe(row)) {
+        return true;
+    }
+
+    for (int k = 0; k < row.size(); ++k) {
+        std::vector<int> temp;
+        temp.reserve(row.size() - 1);
+
+        for (int i = 0; i < row.size(); ++i) {
+            if (i != k) temp.push_back(row[i]);
+        }
+        if (is_strictly_safe(temp)) return true;
+    }
+    return false;
+}
+
+
 int main() {
     std::cout << "Run test file (1) or actual dataset? (2)?: ";
     int file_to_run; 
     std::cin >> file_to_run;
     auto infile = open_input_file(file_to_run);
 
-    // two conditions for valid report
+    std::vector<std::vector<int>> grid;
+    std::string line;
+    while (std::getline(infile, line)) {
+        std::vector<int> row;
+        std::istringstream iss(line);
+        int x;
+
+        while (iss >> x) {
+            row.push_back(x);
+        }
+
+        grid.push_back(std::move(row));
+    }
+
+    int safe_reports = 0;
+    for (auto const& row : grid) {
+        if (is_safe_with_dampener(row)) {
+            ++safe_reports;
+        }
+    }
+    std::cout << "num of safe reports: " << safe_reports << '\n';
+/*
+    for (auto i = 0; i < grid.size(); ++i) {
+        for (auto j = 0; j < grid[i].size(); ++j) {
+            std::cout << grid[i][j] << " ";
+        }
+        std::cout << '\n';
+    } */
+
+    return 0;
+}
+
+  // two conditions for valid report
         // 1: each col is all increasing or all decreasing 
         // 1, 2, 3 = VALID
         // 1, 4, 2 = INVALID
@@ -44,60 +110,3 @@ int main() {
         // validate with conditions above
             // if valid, increment running total
             // if not valid, go to next list
-
-    std::vector<std::vector<int>> grid;
-
-    std::string line;
-    while (std::getline(infile, line)) {
-        std::vector<int> row;
-        std::istringstream iss(line);
-        int x;
-
-        while (iss >> x) {
-            row.push_back(x);
-        }
-
-        grid.push_back(std::move(row));
-    }
-
-    int safe_reports = 0; 
-    for (auto i = 0; i < grid.size(); ++i) {
-        auto& row = grid[i]; // get ref to actual row (would make a copy if no &)
-        bool valid_difference = true;
-        bool increasing = true;
-        bool decreasing = true;
-
-        for (auto j = 0; j + 1 < grid[i].size(); ++j) {
-            int difference = row.at(j + 1) - row.at(j);
-
-            // check for valid magnitutde (1, 2, or 3)
-            if (std::abs(difference) < 1 || std::abs(difference) > 3) {
-                valid_difference = false;
-                break;
-            }
-
-            // check for always increasing or decreasing
-            if (difference <= 0) {
-                increasing = false; 
-            }
-            if (difference >= 0) {
-                decreasing = false;
-            }
-        }
-
-        if (valid_difference && (increasing || decreasing)) {
-            ++safe_reports;
-        }
-    }
-    
-    std::cout << "num of safe reports: " << safe_reports << '\n';
-/*
-    for (auto i = 0; i < grid.size(); ++i) {
-        for (auto j = 0; j < grid[i].size(); ++j) {
-            std::cout << grid[i][j] << " ";
-        }
-        std::cout << '\n';
-    } */
-
-    return 0;
-}
