@@ -34,15 +34,32 @@ int main() {
     // when you find a valid key, do the multiplication
     // add all valid multiplication results
 
+
+    // part2
+    // if don't()
+        // don t process anything until do()
+    // if do()
+        // process mul like normal
+
     std::string file_as_string {
         std::istreambuf_iterator<char>(infile),
         std::istreambuf_iterator<char>(),
     };
 
     int total = 0;
+    bool locked = false; // initially not locked
+
     // i + 4 because we look 4 indices ahead in the if statement
     for (auto i = 0; i + 4 < file_as_string.size(); ++i) {
-        if (file_as_string.compare(i, 4, "mul(") == 0) {
+        // found dont command
+        if (file_as_string.compare(i, 7, "don't()") == 0) {
+            locked = true;
+            std::cout << "don't found" << '\n';
+        } else if (file_as_string.compare(i, 4, "do()") == 0) {
+            locked = false;
+            std::cout << "do found" << '\n';
+        }
+        if ((file_as_string.compare(i, 4, "mul(") == 0) && !locked) {
             //std::cout << "Found match: " << file_as_string.substr(i, 7) << '\n';
             
             // validate first num
